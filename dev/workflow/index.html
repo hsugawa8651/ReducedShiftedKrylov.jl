@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Workflow · ReducedShiftedKrylov.jl</title><meta name="title" content="Workflow · ReducedShiftedKrylov.jl"/><meta property="og:title" content="Workflow · ReducedShiftedKrylov.jl"/><meta property="twitter:title" content="Workflow · ReducedShiftedKrylov.jl"/><meta name="description" content="Documentation for ReducedShiftedKrylov.jl."/><meta property="og:description" content="Documentation for ReducedShiftedKrylov.jl."/><meta property="twitter:description" content="Documentation for ReducedShiftedKrylov.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../">ReducedShiftedKrylov.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li class="is-active"><a class="tocitem" href>Workflow</a><ul class="internal"><li><a class="tocitem" href="#Basic-Usage"><span>Basic Usage</span></a></li><li><a class="tocitem" href="#Green&#39;s-Function-Calculation"><span>Green&#39;s Function Calculation</span></a></li><li><a class="tocitem" href="#Comparison-with-Direct-Diagonalization"><span>Comparison with Direct Diagonalization</span></a></li><li><a class="tocitem" href="#Integration-Pattern-for-Application-Packages"><span>Integration Pattern for Application Packages</span></a></li><li><a class="tocitem" href="#Tips-and-Best-Practices"><span>Tips and Best Practices</span></a></li></ul></li><li><a class="tocitem" href="../api/">API Reference</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Workflow</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Workflow</a></li></ul></nav><div class="docs-right"><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Workflow-and-Applications"><a class="docs-heading-anchor" href="#Workflow-and-Applications">Workflow and Applications</a><a id="Workflow-and-Applications-1"></a><a class="docs-heading-anchor-permalink" href="#Workflow-and-Applications" title="Permalink"></a></h1><h2 id="Basic-Usage"><a class="docs-heading-anchor" href="#Basic-Usage">Basic Usage</a><a id="Basic-Usage-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Usage" title="Permalink"></a></h2><h3 id="Solving-Shifted-Linear-Systems"><a class="docs-heading-anchor" href="#Solving-Shifted-Linear-Systems">Solving Shifted Linear Systems</a><a id="Solving-Shifted-Linear-Systems-1"></a><a class="docs-heading-anchor-permalink" href="#Solving-Shifted-Linear-Systems" title="Permalink"></a></h3><pre><code class="language-julia hljs">using LinearAlgebra
+using ReducedShiftedKrylov
+
+# Create a Hermitian matrix
+n = 100
+H = rand(ComplexF64, n, n)
+A = Hermitian(H + H&#39; + 2n * I)
+b = rand(ComplexF64, n)
+
+# Define shifts
+shifts = [0.1im, 0.2im, 0.3im]
+
+# Solve (A + σⱼI) x = b for all shifts
+x, stats = rscg(A, b, shifts)
+
+# Check convergence
+println(&quot;Converged: &quot;, stats.solved)
+println(&quot;Iterations: &quot;, stats.niter)
+
+# Verify solution
+for (j, σ) in enumerate(shifts)
+    residual = norm((A + σ * I) * x[j] - b)
+    println(&quot;Shift $j residual: $residual&quot;)
+end</code></pre><h3 id="Reduced-Mode"><a class="docs-heading-anchor" href="#Reduced-Mode">Reduced Mode</a><a id="Reduced-Mode-1"></a><a class="docs-heading-anchor-permalink" href="#Reduced-Mode" title="Permalink"></a></h3><p>When you only need specific components of the solution (e.g., Green&#39;s function matrix elements), use reduced mode to save memory:</p><pre><code class="language-julia hljs"># Reduction matrix V: extracts components 1:m
+m = 10
+V = zeros(ComplexF64, m, n)
+for i in 1:m
+    V[i, i] = 1.0
+end
+
+# Compute Ξ = V * x directly
+Ξ, stats = rscg(A, b, shifts, V)
+
+# Ξ[j] has dimension m instead of n
+println(&quot;Reduced solution size: &quot;, length(Ξ[1]))</code></pre><h3 id="Workspace-Reuse"><a class="docs-heading-anchor" href="#Workspace-Reuse">Workspace Reuse</a><a id="Workspace-Reuse-1"></a><a class="docs-heading-anchor-permalink" href="#Workspace-Reuse" title="Permalink"></a></h3><p>For solving multiple systems with different right-hand sides:</p><pre><code class="language-julia hljs"># Create workspace once
+workspace = krylov_workspace(Val(:rscg), A, b, length(shifts))
+
+# Solve multiple systems
+for i in 1:10
+    b_i = rand(ComplexF64, n)
+    rscg!(workspace, A, b_i, shifts)
+    x_i, stats_i = results(workspace)
+    # Process results...
+end</code></pre><h2 id="Green&#39;s-Function-Calculation"><a class="docs-heading-anchor" href="#Green&#39;s-Function-Calculation">Green&#39;s Function Calculation</a><a id="Green&#39;s-Function-Calculation-1"></a><a class="docs-heading-anchor-permalink" href="#Green&#39;s-Function-Calculation" title="Permalink"></a></h2><h3 id="Single-Matrix-Element"><a class="docs-heading-anchor" href="#Single-Matrix-Element">Single Matrix Element</a><a id="Single-Matrix-Element-1"></a><a class="docs-heading-anchor-permalink" href="#Single-Matrix-Element" title="Permalink"></a></h3><p>Compute <span>$G_{\alpha\beta}(z) = \langle \alpha | (zI - H)^{-1} | \beta \rangle$</span>:</p><pre><code class="language-julia hljs">using LinearAlgebra
+using ReducedShiftedKrylov
+
+# Hamiltonian
+n = 50
+H_raw = rand(ComplexF64, n, n)
+H = Hermitian(H_raw + H_raw&#39; + 2n * I)
+
+# Frequency points
+η = 0.1  # broadening
+ω_values = range(-5, 5, length=100)
+z_values = [ω + im * η for ω in ω_values]
+
+# Indices for G_αβ
+α, β = 1, 1
+
+# Set up RSCG: (zI - H)⁻¹ → A = -H, σ = z
+A = Hermitian(-Matrix(H))
+b = zeros(ComplexF64, n)
+b[β] = 1.0
+
+# Reduction matrix for α-th component
+V = zeros(ComplexF64, 1, n)
+V[1, α] = 1.0
+
+# Solve
+Ξ, stats = rscg(A, b, z_values, V)
+
+# Extract G_αβ(z)
+G_αβ = [Ξ[j][1] for j in eachindex(z_values)]</code></pre><h3 id="Local-Density-of-States-(LDOS)"><a class="docs-heading-anchor" href="#Local-Density-of-States-(LDOS)">Local Density of States (LDOS)</a><a id="Local-Density-of-States-(LDOS)-1"></a><a class="docs-heading-anchor-permalink" href="#Local-Density-of-States-(LDOS)" title="Permalink"></a></h3><pre><code class="language-julia hljs"># LDOS at site α
+LDOS = [-imag(G_αβ[j]) / π for j in eachindex(ω_values)]
+
+# Plot
+using Plots
+plot(ω_values, LDOS, xlabel=&quot;ω&quot;, ylabel=&quot;LDOS&quot;, title=&quot;Local Density of States&quot;)</code></pre><h3 id="Multiple-Matrix-Elements"><a class="docs-heading-anchor" href="#Multiple-Matrix-Elements">Multiple Matrix Elements</a><a id="Multiple-Matrix-Elements-1"></a><a class="docs-heading-anchor-permalink" href="#Multiple-Matrix-Elements" title="Permalink"></a></h3><p>For a block of Green&#39;s function elements:</p><pre><code class="language-julia hljs"># Compute G_αβ for α, β ∈ {1, 2, ..., m}
+m = 5
+
+# Reduction matrix: extract first m components
+V = zeros(ComplexF64, m, n)
+for i in 1:m
+    V[i, i] = 1.0
+end
+
+# Solve for each β
+G = zeros(ComplexF64, m, m, length(z_values))
+for β in 1:m
+    b = zeros(ComplexF64, n)
+    b[β] = 1.0
+    Ξ, _ = rscg(A, b, z_values, V)
+    for (j, z) in enumerate(z_values)
+        G[:, β, j] = Ξ[j]
+    end
+end</code></pre><h2 id="Comparison-with-Direct-Diagonalization"><a class="docs-heading-anchor" href="#Comparison-with-Direct-Diagonalization">Comparison with Direct Diagonalization</a><a id="Comparison-with-Direct-Diagonalization-1"></a><a class="docs-heading-anchor-permalink" href="#Comparison-with-Direct-Diagonalization" title="Permalink"></a></h2><p>For small systems, you can verify RSCG results against diagonalization:</p><pre><code class="language-julia hljs"># Exact Green&#39;s function via diagonalization
+λ, U = eigen(H)
+function G_exact(z)
+    return U * Diagonal(1 ./ (z .- λ)) * U&#39;
+end
+
+# Compare
+for (j, z) in enumerate(z_values)
+    G_rscg = Ξ[j][1]
+    G_diag = G_exact(z)[α, β]
+    error = abs(G_rscg - G_diag) / abs(G_diag)
+    println(&quot;z = $z: relative error = $error&quot;)
+end</code></pre><h2 id="Integration-Pattern-for-Application-Packages"><a class="docs-heading-anchor" href="#Integration-Pattern-for-Application-Packages">Integration Pattern for Application Packages</a><a id="Integration-Pattern-for-Application-Packages-1"></a><a class="docs-heading-anchor-permalink" href="#Integration-Pattern-for-Application-Packages" title="Permalink"></a></h2><p>ReducedShiftedKrylov.jl provides a <strong>generic RSCG solver</strong>. Application packages should create their own domain-specific APIs that wrap the generic solver.</p><h3 id="Recommended-Pattern"><a class="docs-heading-anchor" href="#Recommended-Pattern">Recommended Pattern</a><a id="Recommended-Pattern-1"></a><a class="docs-heading-anchor-permalink" href="#Recommended-Pattern" title="Permalink"></a></h3><pre><code class="language-julia hljs"># MyPhysicsPackage.jl
+
+using ReducedShiftedKrylov
+using LinearAlgebra
+
+# 1. Define domain-specific operators
+struct EffectiveHamiltonian{TL, TR, TF}
+    LHS::TL
+    RHS::TR
+    RHS_fact::TF  # LU factorization of RHS
+end
+
+function EffectiveHamiltonian(LHS, RHS)
+    EffectiveHamiltonian(LHS, RHS, lu(RHS))
+end
+
+# H * x = RHS⁻¹ * (LHS * x)
+function LinearAlgebra.mul!(y, H::EffectiveHamiltonian, x)
+    tmp = H.LHS * x
+    ldiv!(y, H.RHS_fact, tmp)
+    return y
+end
+
+Base.:*(H::EffectiveHamiltonian, x) = (y = similar(x); mul!(y, H, x))
+Base.size(H::EffectiveHamiltonian) = size(H.LHS)
+
+# 2. Define negated operator for RSCG interface
+struct NegatedOperator{T}
+    op::T
+end
+
+function LinearAlgebra.mul!(y, A::NegatedOperator, x)
+    mul!(y, A.op, x)
+    y .*= -1
+    return y
+end
+
+Base.:*(A::NegatedOperator, x) = -1 .* (A.op * x)
+Base.size(A::NegatedOperator) = size(A.op)
+
+# 3. Domain-specific convenience API
+&quot;&quot;&quot;
+    compute_greens_function(solver, k, ω_values, source; η=1e-3)
+
+Compute G(ω) = (ω² + iη - H)⁻¹ * source for multiple frequencies.
+&quot;&quot;&quot;
+function compute_greens_function(solver, k, ω_values, source; η=1e-3)
+    # Build matrices from your physics solver
+    LHS, RHS = build_matrices(solver, k)
+
+    # Effective Hamiltonian: H = RHS⁻¹ * LHS
+    H = EffectiveHamiltonian(LHS, RHS)
+
+    # For RSCG: solve (σI + A)x = b where A = -H, σ = z
+    # This gives (zI - H)x = b, i.e., x = G(z) * b
+    A = NegatedOperator(H)
+
+    # Shifts: z = ω² + iη
+    shifts = [ω^2 + im*η for ω in ω_values]
+
+    # Solve using ReducedShiftedKrylov.jl
+    x_solutions, stats = rscg(A, ComplexF64.(source), shifts)
+
+    return x_solutions, stats
+end
+
+# 4. With reduction matrix for specific components
+function compute_greens_element(solver, k, ω_values, α, β; η=1e-3)
+    LHS, RHS = build_matrices(solver, k)
+    n = size(LHS, 1)
+
+    H = EffectiveHamiltonian(LHS, RHS)
+    A = NegatedOperator(H)
+
+    # Source: e_β
+    b = zeros(ComplexF64, n)
+    b[β] = 1.0
+
+    # Reduction: extract α-th component
+    V = zeros(ComplexF64, 1, n)
+    V[1, α] = 1.0
+
+    shifts = [ω^2 + im*η for ω in ω_values]
+
+    # Reduced solve: returns Ξ = V * x = G_αβ directly
+    Ξ, stats = rscg(A, b, shifts, V)
+
+    return [Ξ[j][1] for j in eachindex(ω_values)], stats
+end</code></pre><h3 id="Key-Points"><a class="docs-heading-anchor" href="#Key-Points">Key Points</a><a id="Key-Points-1"></a><a class="docs-heading-anchor-permalink" href="#Key-Points" title="Permalink"></a></h3><ol><li><p><strong>ReducedShiftedKrylov.jl solves</strong>: <span>$(σI + A) x = b$</span></p></li><li><p><strong>For Green&#39;s function</strong> <span>$G(z) = (zI - H)^{-1}$</span>:</p><ul><li>Set <span>$A = -H$</span></li><li>Set <span>$σ = z$</span></li><li>Then <span>$(σI + A)x = b$</span> becomes <span>$(zI - H)x = b$</span></li></ul></li><li><p><strong>Domain-specific conversions</strong> belong in the application package:</p><ul><li><code>EffectiveHamiltonian</code>: <span>$H = RHS^{-1} \cdot LHS$</span></li><li><code>NegatedOperator</code>: <span>$A = -H$</span></li><li>Shift construction: <span>$z = ω^2 + iη$</span></li></ul></li><li><p><strong>Reduced mode</strong> for memory efficiency:</p><ul><li>Use <code>rscg(A, b, shifts, V)</code> to compute <span>$Ξ = V x$</span> directly</li><li>Avoids storing full solution vectors</li></ul></li></ol><h3 id="Example:-PhoXonic.jl"><a class="docs-heading-anchor" href="#Example:-PhoXonic.jl">Example: PhoXonic.jl</a><a id="Example:-PhoXonic.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Example:-PhoXonic.jl" title="Permalink"></a></h3><p>PhoXonic.jl uses this pattern for photonic/phononic crystal calculations:</p><pre><code class="language-julia hljs">using PhoXonic
+using ReducedShiftedKrylov
+
+solver = Solver(...)
+
+# PhoXonic provides domain-specific API
+G_values = compute_greens_function(solver, k, ω_values, source, RSKGF(); η=0.01)
+ldos = compute_ldos(solver, position, ω_values, k_points, MatrixFreeGF())</code></pre><p>Internally, PhoXonic wraps ReducedShiftedKrylov.jl&#39;s generic <code>rscg</code> solver.</p><h2 id="Tips-and-Best-Practices"><a class="docs-heading-anchor" href="#Tips-and-Best-Practices">Tips and Best Practices</a><a id="Tips-and-Best-Practices-1"></a><a class="docs-heading-anchor-permalink" href="#Tips-and-Best-Practices" title="Permalink"></a></h2><h3 id="Convergence"><a class="docs-heading-anchor" href="#Convergence">Convergence</a><a id="Convergence-1"></a><a class="docs-heading-anchor-permalink" href="#Convergence" title="Permalink"></a></h3><ul><li>Shifts close to eigenvalues converge slowly</li><li>Add small imaginary part <code>iη</code> to avoid singularities</li><li>Monitor <code>stats.niter</code> and <code>stats.residuals</code></li></ul><h3 id="Memory-Efficiency"><a class="docs-heading-anchor" href="#Memory-Efficiency">Memory Efficiency</a><a id="Memory-Efficiency-1"></a><a class="docs-heading-anchor-permalink" href="#Memory-Efficiency" title="Permalink"></a></h3><ul><li>Use reduced mode when possible</li><li>Reuse workspace for multiple solves</li><li>For very large <code>nshifts</code>, consider batching</li></ul><h3 id="Performance"><a class="docs-heading-anchor" href="#Performance">Performance</a><a id="Performance-1"></a><a class="docs-heading-anchor-permalink" href="#Performance" title="Permalink"></a></h3><ul><li>Ensure <code>A</code> is truly Hermitian (use <code>Hermitian()</code> wrapper)</li><li>For sparse matrices, RSCG only needs matrix-vector products</li><li>Complex Hermitian: 1 matvec per iteration (same as real)</li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../">« Home</a><a class="docs-footer-nextpage" href="../api/">API Reference »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Thursday 18 December 2025 07:06">Thursday 18 December 2025</span>. Using Julia version 1.12.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
