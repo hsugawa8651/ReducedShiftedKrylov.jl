@@ -1,0 +1,6 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+ReducedShiftedKrylov = "f8a3c7d1-9e2b-4a5c-8d6e-1f2a3b4c5d6e"
+
+[compat]
+Documenter = "1"
